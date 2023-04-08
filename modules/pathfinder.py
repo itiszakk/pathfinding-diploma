@@ -1,8 +1,9 @@
 from enum import Enum
+from collections import deque
 from modules.box import Box
 from modules.grid import Grid
 from modules.qtree import QTree
-from modules.common import Utils
+from modules.utils import time_ms, is_grid, is_qtree
 
 
 class Pathfinder:
@@ -16,25 +17,19 @@ class Pathfinder:
         ASTAR = 1, 'A*'
         JPS = 2, 'Jump Point Search'
 
-    def __init__(self, data: Grid | QTree | None = None):
+    def __init__(self, data: Grid | QTree, algorithm: Algorithm, start, end):
         self.data = data
-        self.algorithm = Pathfinder.Algorithm.BFS
-        self.start_coordinates = None
-        self.end_coordinates = None
-
-    def is_grid_data(self):
-        return isinstance(self.data, Grid)
-
-    def is_qtree_data(self):
-        return isinstance(self.data, QTree)
+        self.algorithm = algorithm
+        self.start = data.get(*start)
+        self.end = data.get(*end)
 
     def execute(self):
         methods = [self.__bfs, self.__astar, self.__jps]
 
-        time = Utils.time_ms()
+        time = time_ms()
         path = methods[self.algorithm.index]()
 
-        self.__print_info(len(path), Utils.time_ms() - time)
+        self.__print_info(len(path), time_ms() - time)
 
         return path
 
@@ -42,6 +37,8 @@ class Pathfinder:
         print(f'\n'
               f'Algorithm: {self.algorithm.label}\n'
               f'Data type: {type(self.data).__name__}\n'
+              f'From: {self.start}\n'
+              f'To: {self.end}\n'
               f'Path length: {path_length}\n'
               f'Time: {time} ms')
 
@@ -53,30 +50,27 @@ class Pathfinder:
         def qtree_check(node: QTree) -> bool:
             return node.box.state != Box.State.BLOCKED
 
-        if self.is_grid_data():
+        if is_grid(self.data):
             return grid_check
 
-        if self.is_qtree_data():
+        if is_qtree(self.data):
             return qtree_check
 
     def __neighbours(self, element: tuple[int, int] | QTree):
         check = self.check_wrapper()
 
-        if self.is_grid_data():
+        if is_grid(self.data):
             return self.data.neighbours(element, check)
 
-        if self.is_qtree_data():
+        if is_qtree(self.data):
             return element.neighbours(check)
 
     def __bfs(self):
-        start = self.data.get(*self.start_coordinates)
-        end = self.data.get(*self.end_coordinates)
-
-        visited = {start: None}
-        queue = [start]
+        visited = {self.start: None}
+        queue = deque([self.start])
 
         while queue:
-            current = queue.pop(0)
+            current = queue.popleft()
             neighbours = self.__neighbours(current)
 
             for neighbour in neighbours:
@@ -85,7 +79,7 @@ class Pathfinder:
                     visited[neighbour] = current
 
         path = []
-        path_element = end
+        path_element = self.end
 
         while path_element in visited:
             path.append(path_element)

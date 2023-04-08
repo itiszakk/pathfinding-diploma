@@ -1,9 +1,8 @@
 import numpy as np
-from PIL import Image
 from enum import IntEnum
 from config import Config
-from modules.box import Box
-from modules.common import Direction
+from modules.box import Box, Direction
+from collections import deque
 
 
 class QTree:
@@ -14,12 +13,6 @@ class QTree:
         SW = 2
         SE = 3
 
-    class Direction(IntEnum):
-        N = 0
-        E = 1
-        S = 2
-        W = 3
-
     def __init__(self, x, y, w, h):
         self.depth = 0
         self.box = Box(x, y, w, h)
@@ -29,7 +22,7 @@ class QTree:
     def __repr__(self):
         return (f'QTree('
                 f'box={self.box}, '
-                f'depth={self.depth}')
+                f'depth={self.depth})')
 
     def is_leaf(self):
         return not self.children
@@ -57,44 +50,31 @@ class QTree:
 
         return children
 
-    def save_image(self, image_path, path=None):
-        image = np.empty((self.box.h, self.box.w, 3), dtype=np.uint8)
-
-        children = self.search_children()
-
-        for node in children:
-            color = Config.Color.GREEN if path is not None and node in path else node.box.state.color
-            image[node.box.y:node.box.y + node.box.h - 1, node.box.x:node.box.x + node.box.w - 1, :] = color
-            image[node.box.y:node.box.y + node.box.h, node.box.x + node.box.w - 1, :] = Config.Color.DARKGRAY
-            image[node.box.y + node.box.h - 1, node.box.x:node.box.x + node.box.w, :] = Config.Color.DARKGRAY
-
-        image = Image.fromarray(image)
-        image.save(image_path)
-
     def divide(self, image: np.ndarray):
-        image_slice = image[self.box.y:self.box.y + self.box.h, self.box.x:self.box.x + self.box.w]
+        x, y, w, h = self.box.x, self.box.y, self.box.w, self.box.h
 
-        self.box.state = Box.State.slice_state(image_slice)
+        image_slice = image[y:y+h, x:x+w]
+        self.box.state = Box.slice_state(image_slice)
 
         if self.box.state == Box.State.EMPTY or self.box.state == Box.State.BLOCKED:
             return
 
-        w = self.box.w // 2
-        h = self.box.h // 2
+        half_w = w // 2
+        half_h = h // 2
 
-        if w < Config.QTree.MIN_SIZE or h < Config.QTree.MIN_SIZE:
+        if half_w < Config.QTree.MIN_SIZE or half_h < Config.QTree.MIN_SIZE:
             return
 
-        nw_child = QTree(self.box.x, self.box.y, w, h)
+        nw_child = QTree(x, y, half_w, half_h)
         self.add_child(nw_child)
 
-        ne_child = QTree(self.box.x + w, self.box.y, w + self.box.w % 2, h)
+        ne_child = QTree(x + half_w, y, half_w + w % 2, half_h)
         self.add_child(ne_child)
 
-        sw_child = QTree(self.box.x, self.box.y + h, w, h + self.box.h % 2)
+        sw_child = QTree(x, y + half_h, half_w, half_h + h % 2)
         self.add_child(sw_child)
 
-        se_child = QTree(self.box.x + w, self.box.y + h, w + self.box.w % 2, h + self.box.h % 2)
+        se_child = QTree(x + half_w, y + half_h, half_w + w % 2, half_h + h % 2)
         self.add_child(se_child)
 
         for child in self.children:
@@ -121,115 +101,103 @@ class QTree:
         if self.parent is None:
             return None
 
-        siblings = self.parent.children
-
         if direction == Direction.N:
-            if self == siblings[self.Child.SW]:
-                return siblings[self.Child.NW]
-            if self == siblings[self.Child.SE]:
-                return siblings[self.Child.NE]
+            if self == self.parent.children[self.Child.SW]:
+                return self.parent.children[self.Child.NW]
+
+            if self == self.parent.children[self.Child.SE]:
+                return self.parent.children[self.Child.NE]
 
             node = self.parent.__get_sibling_or_parent_neighbour(direction)
 
             if node is None or node.is_leaf():
                 return node
 
-            if self == siblings[self.Child.NW]:
+            if self == self.parent.children[self.Child.NW]:
                 return node.children[self.Child.SW]
-            else:
-                return node.children[self.Child.SE]
+
+            return node.children[self.Child.SE]
 
         if direction == Direction.E:
-            if self == siblings[self.Child.NW]:
-                return siblings[self.Child.NE]
-            if self == siblings[self.Child.SW]:
-                return siblings[self.Child.SE]
+            if self == self.parent.children[self.Child.NW]:
+                return self.parent.children[self.Child.NE]
+
+            if self == self.parent.children[self.Child.SW]:
+                return self.parent.children[self.Child.SE]
 
             node = self.parent.__get_sibling_or_parent_neighbour(direction)
 
             if node is None or node.is_leaf():
                 return node
 
-            if self == siblings[self.Child.NE]:
+            if self == self.parent.children[self.Child.NE]:
                 return node.children[self.Child.NW]
-            else:
-                return node.children[self.Child.SW]
+
+            return node.children[self.Child.SW]
 
         if direction == Direction.S:
-            if self == siblings[self.Child.NW]:
-                return siblings[self.Child.SW]
-            if self == siblings[self.Child.NE]:
-                return siblings[self.Child.SE]
+            if self == self.parent.children[self.Child.NW]:
+                return self.parent.children[self.Child.SW]
+
+            if self == self.parent.children[self.Child.NE]:
+                return self.parent.children[self.Child.SE]
 
             node = self.parent.__get_sibling_or_parent_neighbour(direction)
 
             if node is None or node.is_leaf():
                 return node
 
-            if self == siblings[self.Child.SW]:
+            if self == self.parent.children[self.Child.SW]:
                 return node.children[self.Child.NW]
-            else:
-                return node.children[self.Child.NE]
+
+            return node.children[self.Child.NE]
 
         if direction == Direction.W:
-            if self == siblings[self.Child.NE]:
-                return siblings[self.Child.NW]
-            if self == siblings[self.Child.SE]:
-                return siblings[self.Child.SW]
+            if self == self.parent.children[self.Child.NE]:
+                return self.parent.children[self.Child.NW]
+
+            if self == self.parent.children[self.Child.SE]:
+                return self.parent.children[self.Child.SW]
 
             node = self.parent.__get_sibling_or_parent_neighbour(direction)
 
             if node is None or node.is_leaf():
                 return node
 
-            if self == siblings[self.Child.NW]:
+            if self == self.parent.children[self.Child.NW]:
                 return node.children[self.Child.NE]
-            else:
-                return node.children[self.Child.SE]
+
+            return node.children[self.Child.SE]
 
     def __get_neighbours_of_children(self, neighbour: 'QTree', direction: Direction):
-        candidates = [] if neighbour is None else [neighbour]
         neighbours = []
+        candidates = deque()
 
-        if direction == Direction.N:
-            while candidates:
-                candidate = candidates.pop(0)
+        if neighbour is not None:
+            candidates.append(neighbour)
 
-                if candidate.is_leaf():
-                    neighbours.append(candidate)
-                else:
-                    candidates.append(candidate.children[self.Child.SW])
-                    candidates.append(candidate.children[self.Child.SE])
+        while candidates:
+            candidate = candidates.popleft()
 
-        if direction == Direction.E:
-            while candidates:
-                candidate = candidates.pop(0)
+            if candidate.is_leaf():
+                neighbours.append(candidate)
+                continue
 
-                if candidate.is_leaf():
-                    neighbours.append(candidate)
-                else:
-                    candidates.append(candidate.children[self.Child.NW])
-                    candidates.append(candidate.children[self.Child.SW])
+            if direction == Direction.N:
+                candidates.append(candidate.children[self.Child.SW])
+                candidates.append(candidate.children[self.Child.SE])
 
-        if direction == Direction.S:
-            while candidates:
-                candidate = candidates.pop(0)
+            if direction == Direction.E:
+                candidates.append(candidate.children[self.Child.NW])
+                candidates.append(candidate.children[self.Child.SW])
 
-                if candidate.is_leaf():
-                    neighbours.append(candidate)
-                else:
-                    candidates.append(candidate.children[self.Child.NW])
-                    candidates.append(candidate.children[self.Child.NE])
+            if direction == Direction.S:
+                candidates.append(candidate.children[self.Child.NW])
+                candidates.append(candidate.children[self.Child.NE])
 
-        if direction == Direction.W:
-            while candidates:
-                candidate = candidates.pop(0)
-
-                if candidate.is_leaf():
-                    neighbours.append(candidate)
-                else:
-                    candidates.append(candidate.children[self.Child.NE])
-                    candidates.append(candidate.children[self.Child.SE])
+            if direction == Direction.W:
+                candidates.append(candidate.children[self.Child.NE])
+                candidates.append(candidate.children[self.Child.SE])
 
         return neighbours
 

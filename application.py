@@ -3,34 +3,21 @@ from PIL import Image
 from modules.grid import Grid
 from modules.qtree import QTree
 from modules.pathfinder import Pathfinder
+from modules.utils import save_image
 
 
 def test_qtree_pathfinder(qtree: QTree):
-    pathfinder = Pathfinder()
-
-    pathfinder.data = qtree
-    pathfinder.algorithm = Pathfinder.Algorithm.BFS
-    pathfinder.start_coordinates = (608, 31)
-    pathfinder.end_coordinates = (62, 526)
-
+    pathfinder = Pathfinder(qtree, Pathfinder.Algorithm.BFS, (608, 31), (62, 526))
     path = pathfinder.execute()
-
-    qtree.save_image('data\\qtree.bmp')
-    qtree.save_image('data\\qtree_path.bmp', path)
+    save_image(qtree, 'data\\qtree.bmp')
+    save_image(qtree, 'data\\qtree_path.bmp', path)
 
 
 def test_grid_pathfinder(grid: Grid):
-    pathfinder = Pathfinder()
-
-    pathfinder.data = grid
-    pathfinder.algorithm = Pathfinder.Algorithm.BFS
-    pathfinder.start_coordinates = (608, 31)
-    pathfinder.end_coordinates = (62, 526)
-
+    pathfinder = Pathfinder(grid, Pathfinder.Algorithm.BFS, (608, 31), (62, 526))
     path = pathfinder.execute()
-
-    grid.save_image('data\\grid.bmp')
-    grid.save_image('data\\grid_path.bmp', path)
+    save_image(grid, 'data\\grid.bmp')
+    save_image(grid, 'data\\grid_path.bmp', path)
 
 
 def main():

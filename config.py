@@ -6,8 +6,8 @@ class Config:
         MIN_SIZE = 10
 
     class Color:
-        BLACK = (0, 0, 0)
-        WHITE = (255, 255, 255)
-        DARKGRAY = (51, 51, 51)
-        LIGHTGRAY = (153, 153, 153)
-        GREEN = (153, 255, 102)
+        BLOCKED = (0, 0, 0)
+        EMPTY = (255, 255, 255)
+        INTERMEDIATE = (153, 153, 153)
+        BORDER = (51, 51, 51)
+        PATH = (153, 204, 255)
