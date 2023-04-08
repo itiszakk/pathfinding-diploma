@@ -10,23 +10,15 @@ def time_ms():
     return int(round(time.time() * 1000))
 
 
-def is_grid(data):
-    return isinstance(data, Grid)
-
-
-def is_qtree(data):
-    return isinstance(data, QTree)
-
-
 def save_image(data: Grid | QTree, image_path, path=None):
     shape = None
     elements = []
 
-    if is_grid(data):
+    if isinstance(data, Grid):
         shape = (data.image.shape[0], data.image.shape[1], 3)
         elements = data.elements
 
-    if is_qtree(data):
+    if isinstance(data, QTree):
         shape = (data.box.h, data.box.w, 3)
         elements = data.search_children()
 
@@ -36,10 +28,10 @@ def save_image(data: Grid | QTree, image_path, path=None):
         path_element = None
         box = element
 
-        if is_grid(data):
+        if isinstance(data, Grid):
             path_element = index
 
-        if is_qtree(data):
+        if isinstance(data, QTree):
             box = element.box
             path_element = element
 
