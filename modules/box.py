@@ -17,11 +17,11 @@ class Box:
             self.index = index
             self.color = color
 
-        EMPTY = 0, Config.Color.EMPTY
-        INTERMEDIATE = 1, Config.Color.INTERMEDIATE
-        BLOCKED = 2, Config.Color.BLOCKED
+        SAFE = 0, Config.Color.SAFE
+        MIXED = 1, Config.Color.MIXED
+        UNSAFE = 2, Config.Color.UNSAFE
 
-    def __init__(self, x, y, w, h, state=State.EMPTY):
+    def __init__(self, x, y, w, h, state=State.SAFE):
         self.x = x
         self.y = y
         self.w = w
@@ -39,13 +39,13 @@ class Box:
 
     @staticmethod
     def slice_state(data_slice: np.ndarray):
-        any_empty = np.any(data_slice == Config.Color.EMPTY)
-        any_blocked = np.any(data_slice == Config.Color.BLOCKED)
+        any_safe = np.any(data_slice == Config.Color.SAFE)
+        any_unsafe = np.any(data_slice == Config.Color.UNSAFE)
 
-        if any_empty and not any_blocked:
-            return Box.State.EMPTY
+        if any_safe and not any_unsafe:
+            return Box.State.SAFE
 
-        if not any_empty and any_blocked:
-            return Box.State.BLOCKED
+        if not any_safe and any_unsafe:
+            return Box.State.UNSAFE
 
-        return Box.State.INTERMEDIATE
+        return Box.State.MIXED

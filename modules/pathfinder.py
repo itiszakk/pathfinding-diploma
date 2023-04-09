@@ -1,19 +1,19 @@
+import time
 from collections import deque
 from enum import IntEnum
 from pqdict import pqdict
 from modules.wrapper import Wrapper
-from modules.utils import time_ms
 
 
 def show_info(func):
     def wrapper(*args):
-        time = time_ms()
+        start_time = int(round(time.time() * 1000))
         result = func(*args)
-        time = time_ms() - time
+        end_time = int(round(time.time() * 1000)) - start_time
 
         print(args[0])
         print(f'Length: {len(result)}')
-        print(f'Time: {time} ms\n')
+        print(f'Time: {end_time} ms\n')
 
         return result
 
@@ -28,6 +28,7 @@ class Pathfinder:
         JPS = 2
 
     def __init__(self, wrapper: Wrapper, start, end):
+        self.wrapper = wrapper
         self.start = wrapper.data.get(*start)
         self.end = wrapper.data.get(*end)
         self.algorithm = Pathfinder.Algorithm.BFS
@@ -38,7 +39,9 @@ class Pathfinder:
         self.heuristic = wrapper.heuristic_function()
 
     def __repr__(self):
-        return (f'Algorithm: {self.algorithm.name}\n'
+        return (f'Wrapper: {type(self.wrapper.data).__name__}\n'
+                f'Distance: {self.wrapper.distance.algorithm.name}\n'
+                f'Algorithm: {self.algorithm.name}\n'
                 f'Start: {self.start}\n'
                 f'End: {self.end}')
 
@@ -101,4 +104,5 @@ class Pathfinder:
 
     def __jps(self):
         pass
+
 

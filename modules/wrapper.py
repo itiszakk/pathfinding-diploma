@@ -1,7 +1,7 @@
-from modules.distance import Distance
 from modules.box import Box
 from modules.grid import Grid
 from modules.qtree import QTree
+from modules.distance import Distance
 
 
 class Wrapper:
@@ -15,6 +15,13 @@ class Wrapper:
     def is_qtree(self):
         return isinstance(self.data, QTree)
 
+    def elements(self):
+        if self.is_grid():
+            return self.data.elements
+
+        if self.is_qtree():
+            return self.data.search_children()
+
     def neighbours_function(self):
         def grid_neighbours(index: int):
             return self.data.neighbours(index, self.check_function())
@@ -22,43 +29,37 @@ class Wrapper:
         def qtree_neighbours(node: QTree):
             return node.neighbours(self.check_function())
 
-        if isinstance(self.data, Grid):
+        if self.is_grid():
             return grid_neighbours
 
-        if isinstance(self.data, QTree):
+        if self.is_qtree():
             return qtree_neighbours
 
     def check_function(self):
         def grid_check_function(box: Box) -> bool:
-            return box.state != Box.State.BLOCKED
+            return box.state != Box.State.UNSAFE
 
         def qtree_check_function(node: QTree) -> bool:
-            return node.box.state != Box.State.BLOCKED
+            return node.box.state != Box.State.UNSAFE
 
-        if isinstance(self.data, Grid):
+        if self.is_grid():
             return grid_check_function
 
-        if isinstance(self.data, QTree):
+        if self.is_qtree():
             return qtree_check_function
 
     def cost_function(self):
         def grid_cost_function(start: int, end: int):
-            start_center = self.data.elements[start].center()
-            end_center = self.data.elements[end].center()
-            return self.distance.get(start_center[0] - end_center[0], start_center[1] - end_center[1])
+            return self.distance.get(self.data.element(start).center(), self.data.element(end).center())
 
         def qtree_cost_function(start: QTree, end: QTree):
-            start_center = start.box.center()
-            end_center = end.box.center()
-            return self.distance.get(start_center[0] - end_center[0], start_center[1] - end_center[1])
+            return self.distance.get(start.box.center(), end.box.center())
 
-        if isinstance(self.data, Grid):
+        if self.is_grid():
             return grid_cost_function
 
-        if isinstance(self.data, QTree):
+        if self.is_qtree():
             return qtree_cost_function
 
     def heuristic_function(self):
         return self.cost_function()
-
-

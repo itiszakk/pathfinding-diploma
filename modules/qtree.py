@@ -1,5 +1,7 @@
-import numpy as np
 from enum import IntEnum
+
+import numpy as np
+
 from config import Config
 from modules.box import Box, Direction
 from collections import deque
@@ -50,13 +52,13 @@ class QTree:
 
         return children
 
-    def divide(self, image: np.ndarray):
+    def divide(self, pixels: np.ndarray):
         x, y, w, h = self.box.x, self.box.y, self.box.w, self.box.h
 
-        image_slice = image[y:y+h, x:x+w]
-        self.box.state = Box.slice_state(image_slice)
+        pixels_slice = pixels[y:y+h, x:x+w]
+        self.box.state = Box.slice_state(pixels_slice)
 
-        if self.box.state == Box.State.EMPTY or self.box.state == Box.State.BLOCKED:
+        if self.box.state != Box.State.MIXED:
             return
 
         half_w = w // 2
@@ -78,7 +80,7 @@ class QTree:
         self.add_child(se_child)
 
         for child in self.children:
-            child.divide(image)
+            child.divide(pixels)
 
     def neighbours(self, check):
         neighbours = []

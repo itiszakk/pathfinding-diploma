@@ -1,13 +1,14 @@
 class Config:
     class QTree:
-        MIN_SIZE = 5
+        MIN_SIZE = 100
 
     class Grid:
-        MIN_SIZE = 10
+        MIN_SIZE = 100
 
     class Color:
-        BLOCKED = (0, 0, 0)
-        EMPTY = (255, 255, 255)
-        INTERMEDIATE = (153, 153, 153)
+        UNSAFE = (0, 0, 0)
+        MIXED = (102, 102, 102)
+        SAFE = (255, 255, 255)
         BORDER = (51, 51, 51)
         PATH = (153, 204, 255)
+        TRAJECTORY = (102, 0, 0)

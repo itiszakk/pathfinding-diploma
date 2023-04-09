@@ -1,47 +1,48 @@
-import numpy as np
-from PIL import Image
 from modules.grid import Grid
 from modules.qtree import QTree
+from modules.image import Image
 from modules.wrapper import Wrapper
 from modules.distance import Distance
 from modules.pathfinder import Pathfinder
-from modules.utils import save_image
 
 
-def test_grid_pathfinder(wrapper: Wrapper):
-    pathfinder = Pathfinder(wrapper, (608, 31), (62, 526))
-    pathfinder.algorithm = Pathfinder.Algorithm.ASTAR
-    path = pathfinder.execute()
+# TODO Diagonal paths
+# TODO Better image generation from ndarray (with scikit-image)
+# TODO Risk maps by different criteria
 
-    save_image(wrapper.data, 'data\\grid_astar_euclidian.bmp', path)
+def test_pathfinder(image, wrapper, algorithm):
+    for distance in Distance.Algorithm:
+        wrapper.distance.algorithm = distance
 
+        pathfinder = Pathfinder(wrapper, (4990, 5035), (880, 1510))
+        pathfinder.algorithm = algorithm
 
-def test_qtree_pathfinder(wrapper: Wrapper):
-    pathfinder = Pathfinder(wrapper, (608, 31), (62, 526))
-    pathfinder.algorithm = Pathfinder.Algorithm.ASTAR
-    path = pathfinder.execute()
+        path = pathfinder.execute()
 
-    save_image(wrapper.data, 'data\\qtree_astar_euclidian.bmp', path)
+        data_name = str.lower(type(wrapper.data).__name__)
+        algorithm_name = str.lower(algorithm.name)
+        distance_name = str.lower(distance.name)
+
+        save_path = f'data/{data_name}/{data_name}_{algorithm_name}_{distance_name}.png'
+        image.save(wrapper, save_path, path)
 
 
 def main():
-    image = Image.open('data\\map.bmp')
-    image_array = np.asarray(image)
+    image = Image('data/big_map.png')
 
-    grid = Grid(image_array)
-    save_image(grid, 'data\\grid.bmp')
+    grid = Grid(image.pixels)
 
-    qtree = QTree(0, 0, image.width, image.height)
-    qtree.divide(image_array)
-    save_image(qtree, 'data\\qtree.bmp')
+    qtree = QTree(0, 0, image.width(), image.height())
+    qtree.divide(image.pixels)
 
     grid_wrapper = Wrapper(grid)
-    grid_wrapper.distance.algorithm = Distance.Algorithm.EUCLIDIAN
-    test_grid_pathfinder(grid_wrapper)
-
     qtree_wrapper = Wrapper(qtree)
-    qtree_wrapper.distance.algorithm = Distance.Algorithm.EUCLIDIAN
-    test_qtree_pathfinder(qtree_wrapper)
+
+    image.save(grid_wrapper, 'data/grid/grid.png')
+    image.save(qtree_wrapper, 'data/qtree/qtree.png')
+
+    test_pathfinder(image, grid_wrapper, Pathfinder.Algorithm.ASTAR)
+    test_pathfinder(image, qtree_wrapper, Pathfinder.Algorithm.ASTAR)
 
 
 if __name__ == '__main__':
