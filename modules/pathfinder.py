@@ -1,23 +1,10 @@
-import time
 from collections import deque
 from enum import IntEnum
+
 from pqdict import pqdict
+
+from modules.utils import timeit
 from modules.wrapper import Wrapper
-
-
-def show_info(func):
-    def wrapper(*args):
-        start_time = int(round(time.time() * 1000))
-        result = func(*args)
-        end_time = int(round(time.time() * 1000)) - start_time
-
-        print(args[0])
-        print(f'Length: {len(result)}')
-        print(f'Time: {end_time} ms\n')
-
-        return result
-
-    return wrapper
 
 
 class Pathfinder:
@@ -38,14 +25,7 @@ class Pathfinder:
         self.cost = wrapper.cost_function()
         self.heuristic = wrapper.heuristic_function()
 
-    def __repr__(self):
-        return (f'Wrapper: {type(self.wrapper.data).__name__}\n'
-                f'Distance: {self.wrapper.distance.algorithm.name}\n'
-                f'Algorithm: {self.algorithm.name}\n'
-                f'Start: {self.start}\n'
-                f'End: {self.end}')
-
-    @show_info
+    @timeit
     def execute(self):
         algorithms = [self.__bfs, self.__astar, self.__jps]
         return algorithms[self.algorithm]()
@@ -96,11 +76,11 @@ class Pathfinder:
                 cost = costs[current] + self.cost(current, neighbour)
 
                 if neighbour not in costs or cost < costs[neighbour]:
+                    costs[neighbour] = cost
                     queue[neighbour] = cost + self.heuristic(neighbour, self.end)
                     visited[neighbour] = current
-                    costs[neighbour] = cost
 
-        return self.__build_path(visited)
+        return self.__build_path(visited), list(costs.keys())
 
     def __jps(self):
         pass

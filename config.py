@@ -9,6 +9,11 @@ class Config:
         UNSAFE = (0, 0, 0)
         MIXED = (102, 102, 102)
         SAFE = (255, 255, 255)
-        BORDER = (51, 51, 51)
-        PATH = (153, 204, 255)
+        BACKGROUND = (51, 51, 51)
+        PATH = (153, 255, 153)
+        VISITED = (153, 204, 255)
         TRAJECTORY = (102, 0, 0)
+
+    class Image:
+        BORDER = 10
+        TRAJECTORY = 10

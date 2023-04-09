@@ -1,10 +1,10 @@
+from collections import deque
 from enum import IntEnum
 
 import numpy as np
 
 from config import Config
 from modules.box import Box, Direction
-from collections import deque
 
 
 class QTree:
@@ -106,8 +106,7 @@ class QTree:
         if direction == Direction.N:
             if self == self.parent.children[self.Child.SW]:
                 return self.parent.children[self.Child.NW]
-
-            if self == self.parent.children[self.Child.SE]:
+            elif self == self.parent.children[self.Child.SE]:
                 return self.parent.children[self.Child.NE]
 
             node = self.parent.__get_sibling_or_parent_neighbour(direction)
@@ -119,12 +118,10 @@ class QTree:
                 return node.children[self.Child.SW]
 
             return node.children[self.Child.SE]
-
-        if direction == Direction.E:
+        elif direction == Direction.E:
             if self == self.parent.children[self.Child.NW]:
                 return self.parent.children[self.Child.NE]
-
-            if self == self.parent.children[self.Child.SW]:
+            elif self == self.parent.children[self.Child.SW]:
                 return self.parent.children[self.Child.SE]
 
             node = self.parent.__get_sibling_or_parent_neighbour(direction)
@@ -137,11 +134,10 @@ class QTree:
 
             return node.children[self.Child.SW]
 
-        if direction == Direction.S:
+        elif direction == Direction.S:
             if self == self.parent.children[self.Child.NW]:
                 return self.parent.children[self.Child.SW]
-
-            if self == self.parent.children[self.Child.NE]:
+            elif self == self.parent.children[self.Child.NE]:
                 return self.parent.children[self.Child.SE]
 
             node = self.parent.__get_sibling_or_parent_neighbour(direction)
@@ -154,11 +150,10 @@ class QTree:
 
             return node.children[self.Child.NE]
 
-        if direction == Direction.W:
+        elif direction == Direction.W:
             if self == self.parent.children[self.Child.NE]:
                 return self.parent.children[self.Child.NW]
-
-            if self == self.parent.children[self.Child.SE]:
+            elif self == self.parent.children[self.Child.SE]:
                 return self.parent.children[self.Child.SW]
 
             node = self.parent.__get_sibling_or_parent_neighbour(direction)
@@ -188,16 +183,13 @@ class QTree:
             if direction == Direction.N:
                 candidates.append(candidate.children[self.Child.SW])
                 candidates.append(candidate.children[self.Child.SE])
-
-            if direction == Direction.E:
+            elif direction == Direction.E:
                 candidates.append(candidate.children[self.Child.NW])
                 candidates.append(candidate.children[self.Child.SW])
-
-            if direction == Direction.S:
+            elif direction == Direction.S:
                 candidates.append(candidate.children[self.Child.NW])
                 candidates.append(candidate.children[self.Child.NE])
-
-            if direction == Direction.W:
+            elif direction == Direction.W:
                 candidates.append(candidate.children[self.Child.NE])
                 candidates.append(candidate.children[self.Child.SE])
 

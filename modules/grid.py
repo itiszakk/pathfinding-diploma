@@ -1,4 +1,5 @@
 import numpy as np
+
 from config import Config
 from modules.box import Box, Direction
 
@@ -17,8 +18,7 @@ class Grid:
     def element(self, index: int | tuple[int, int]):
         if isinstance(index, int):
             return self.elements[index]
-
-        if isinstance(index, tuple):
+        elif isinstance(index, tuple):
             return self.elements[self.index(*index)]
 
     def get(self, x, y):
@@ -44,18 +44,27 @@ class Grid:
         if direction == Direction.N:
             if row > 0 and check(self.element((row - 1, column))):
                 return self.index(row - 1, column)
-
-        if direction == Direction.E:
+        elif direction == Direction.E:
             if column < self.columns - 1 and check(self.element((row, column + 1))):
                 return self.index(row, column + 1)
-
-        if direction == Direction.S:
+        elif direction == Direction.S:
             if row < self.rows - 1 and check(self.element((row + 1, column))):
                 return self.index(row + 1, column)
-
-        if direction == Direction.W:
+        elif direction == Direction.W:
             if column > 0 and check(self.element((row, column - 1))):
                 return self.index(row, column - 1)
+        elif direction == Direction.NW:
+            if row > 0 and column > 0 and check(self.element((row - 1, column - 1))):
+                return self.index(row - 1, column - 1)
+        elif direction == Direction.NE:
+            if row > 0 and column < self.columns - 1 and check(self.element((row - 1, column + 1))):
+                return self.index(row - 1, column + 1)
+        elif direction == Direction.SE:
+            if row < self.rows - 1 and column < self.columns - 1 and check(self.element((row + 1, column + 1))):
+                return self.index(row + 1, column + 1)
+        elif direction == Direction.SW:
+            if row < self.rows - 1 and column > 0 and check(self.element((row + 1, column - 1))):
+                return self.index(row + 1, column - 1)
 
     def print_info(self):
         for element in self.elements:

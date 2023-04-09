@@ -1,5 +1,7 @@
-import numpy as np
 from enum import Enum, IntEnum
+
+import numpy as np
+
 from config import Config
 
 
@@ -8,6 +10,10 @@ class Direction(IntEnum):
     E = 1
     S = 2
     W = 3
+    NW = 4
+    NE = 5
+    SE = 6
+    SW = 7
 
 
 class Box:
@@ -44,8 +50,7 @@ class Box:
 
         if any_safe and not any_unsafe:
             return Box.State.SAFE
-
-        if not any_safe and any_unsafe:
+        elif not any_safe and any_unsafe:
             return Box.State.UNSAFE
 
         return Box.State.MIXED

@@ -20,6 +20,5 @@ class Distance:
 
         if self.algorithm == Distance.Algorithm.EUCLIDIAN:
             return math.sqrt(x ** 2 + y ** 2)
-
-        if self.algorithm == Distance.Algorithm.MANHATTAN:
+        elif self.algorithm == Distance.Algorithm.MANHATTAN:
             return x + y

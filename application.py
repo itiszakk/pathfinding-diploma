@@ -6,9 +6,13 @@ from modules.distance import Distance
 from modules.pathfinder import Pathfinder
 
 
-# TODO Diagonal paths
-# TODO Better image generation from ndarray (with scikit-image)
+# TODO Neighbours only by directions, not all around
+# TODO Jump Point Search
+
+# TODO Diagonal neighbours for QTree
+
 # TODO Risk maps by different criteria
+# TODO Path to special format
 
 def test_pathfinder(image, wrapper, algorithm):
     for distance in Distance.Algorithm:
@@ -17,14 +21,14 @@ def test_pathfinder(image, wrapper, algorithm):
         pathfinder = Pathfinder(wrapper, (4990, 5035), (880, 1510))
         pathfinder.algorithm = algorithm
 
-        path = pathfinder.execute()
+        path, visited = pathfinder.execute()
 
         data_name = str.lower(type(wrapper.data).__name__)
         algorithm_name = str.lower(algorithm.name)
         distance_name = str.lower(distance.name)
 
         save_path = f'data/{data_name}/{data_name}_{algorithm_name}_{distance_name}.png'
-        image.save(wrapper, save_path, path)
+        image.save(wrapper, save_path, path, visited)
 
 
 def main():
