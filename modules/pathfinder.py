@@ -4,7 +4,7 @@ from enum import IntEnum
 from pqdict import pqdict
 
 from modules.utils import timeit
-from modules.wrapper import Wrapper
+from modules.data import Data
 
 
 class Pathfinder:
@@ -14,16 +14,11 @@ class Pathfinder:
         ASTAR = 1
         JPS = 2
 
-    def __init__(self, wrapper: Wrapper, start, end):
-        self.wrapper = wrapper
-        self.start = wrapper.data.get(*start)
-        self.end = wrapper.data.get(*end)
+    def __init__(self, data: Data, start, end):
+        self.data = data
+        self.start = data.get(*start)
+        self.end = data.get(*end)
         self.algorithm = Pathfinder.Algorithm.BFS
-
-        # Wrapped functions
-        self.neighbours = wrapper.neighbours_function()
-        self.cost = wrapper.cost_function()
-        self.heuristic = wrapper.heuristic_function()
 
     @timeit
     def execute(self):
@@ -50,7 +45,7 @@ class Pathfinder:
             if current == self.end:
                 break
 
-            neighbours = self.neighbours(current)
+            neighbours = self.data.neighbours(current)
 
             for neighbour in neighbours:
                 if neighbour not in visited:
@@ -70,14 +65,14 @@ class Pathfinder:
             if current == self.end:
                 break
 
-            neighbours = self.neighbours(current)
+            neighbours = self.data.neighbours(current)
 
             for neighbour in neighbours:
-                cost = costs[current] + self.cost(current, neighbour)
+                cost = costs[current] + self.data.cost(current, neighbour)
 
                 if neighbour not in costs or cost < costs[neighbour]:
                     costs[neighbour] = cost
-                    queue[neighbour] = cost + self.heuristic(neighbour, self.end)
+                    queue[neighbour] = cost + self.data.heuristic(neighbour, self.end)
                     visited[neighbour] = current
 
         return self.__build_path(visited), list(costs.keys())
