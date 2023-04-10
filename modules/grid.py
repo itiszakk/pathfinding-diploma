@@ -23,8 +23,16 @@ class Grid(Data):
     def elements(self):
         return self.boxes_list
 
-    def boxes(self):
-        return self.boxes_list
+    def boxes(self, target_list=None):
+        if target_list is None:
+            return self.boxes_list
+
+        boxes = []
+
+        for target in target_list:
+            boxes.append(self.boxes_list[target])
+
+        return boxes
 
     def neighbour(self, index, direction: Data.Direction):
         row = index // self.columns

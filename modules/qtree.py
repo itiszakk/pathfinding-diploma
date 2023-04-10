@@ -49,12 +49,19 @@ class QTree(Data):
 
         return children
 
-    def boxes(self):
+    def boxes(self, target_list=None):
         boxes = []
-        elements = self.elements()
 
-        for element in elements:
-            boxes.append(element.box)
+        if target_list is None:
+            elements = self.elements()
+
+            for element in elements:
+                boxes.append(element.box)
+
+            return boxes
+
+        for target in target_list:
+            boxes.append(target.box)
 
         return boxes
 

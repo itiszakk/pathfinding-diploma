@@ -6,8 +6,6 @@ from modules.grid import Grid
 from modules.qtree import QTree
 
 
-# TODO Image generation with Data abstract class
-
 # TODO Neighbours by expanded box intersection
 
 # TODO Neighbours only by directions, not all around

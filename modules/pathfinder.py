@@ -33,7 +33,7 @@ class Pathfinder:
             path.append(current)
             current = visited[current]
 
-        return path
+        return path, list(visited.keys())
 
     def __bfs(self):
         queue = deque([self.start])
@@ -75,7 +75,7 @@ class Pathfinder:
                     queue[neighbour] = cost + self.data.heuristic(neighbour, self.end)
                     visited[neighbour] = current
 
-        return self.__build_path(visited), list(costs.keys())
+        return self.__build_path(visited)
 
     def __jps(self):
         pass

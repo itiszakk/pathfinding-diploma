@@ -37,7 +37,7 @@ class Data(ABC):
 
     @classmethod
     @abstractmethod
-    def boxes(cls):
+    def boxes(cls, target_list=None):
         ...
 
     @classmethod
