@@ -1,10 +1,10 @@
 import numpy as np
 from config import Config
 from modules.box import Box
-from modules.data import Data
+from modules.data.abstract_data import AbstractData
 
 
-class Grid(Data):
+class Grid(AbstractData):
     def __init__(self, pixels: np.ndarray):
         super().__init__(pixels)
         self.rows = pixels.shape[0] // Config.Grid.MIN_SIZE
@@ -34,7 +34,7 @@ class Grid(Data):
 
         return boxes
 
-    def neighbour(self, index, direction: Data.Direction):
+    def neighbour(self, index, direction: AbstractData.Direction):
         row = index // self.columns
         column = index - row * self.columns
 
@@ -46,7 +46,7 @@ class Grid(Data):
     def neighbours(self, index):
         neighbours = []
 
-        for direction in Data.Direction:
+        for direction in AbstractData.Direction:
             neighbour = self.neighbour(index, direction)
 
             if neighbour is not None:
@@ -55,47 +55,47 @@ class Grid(Data):
         return neighbours
 
     def cost(self, start: int, end: int):
-        return self.distance.get(self.boxes_list[start].center(), self.boxes_list[end].center())
+        return self.distance(self.boxes_list[start].center(), self.boxes_list[end].center())
 
     def heuristic(self, start: int, end: int):
         return self.cost(start, end)
 
-    def __cardinal_neighbour(self, row, column, direction: Data.Direction):
+    def __cardinal_neighbour(self, row, column, direction: AbstractData.Direction):
         match direction:
-            case Data.Direction.N:
+            case AbstractData.Direction.N:
                 index = self.index(row - 1, column)
-                if row > 0 and Data.check(self.boxes_list[index]):
+                if row > 0 and AbstractData.check(self.boxes_list[index]):
                     return index
-            case Data.Direction.E:
+            case AbstractData.Direction.E:
                 index = self.index(row, column + 1)
-                if column < self.columns - 1 and Data.check(self.boxes_list[index]):
+                if column < self.columns - 1 and AbstractData.check(self.boxes_list[index]):
                     return index
-            case Data.Direction.S:
+            case AbstractData.Direction.S:
                 index = self.index(row + 1, column)
-                if row < self.rows - 1 and Data.check(self.boxes_list[index]):
+                if row < self.rows - 1 and AbstractData.check(self.boxes_list[index]):
                     return index
-            case Data.Direction.W:
+            case AbstractData.Direction.W:
                 index = self.index(row, column - 1)
-                if column > 0 and Data.check(self.boxes_list[index]):
+                if column > 0 and AbstractData.check(self.boxes_list[index]):
                     return index
 
-    def __diagonal_neighbour(self, row, column, direction: Data.Direction):
+    def __diagonal_neighbour(self, row, column, direction: AbstractData.Direction):
         match direction:
-            case Data.Direction.NW:
+            case AbstractData.Direction.NW:
                 index = self.index(row - 1, column - 1)
-                if row > 0 and column > 0 and Data.check(self.boxes_list[index]):
+                if row > 0 and column > 0 and AbstractData.check(self.boxes_list[index]):
                     return index
-            case Data.Direction.NE:
+            case AbstractData.Direction.NE:
                 index = self.index(row - 1, column + 1)
-                if row > 0 and column < self.columns - 1 and Data.check(self.boxes_list[index]):
+                if row > 0 and column < self.columns - 1 and AbstractData.check(self.boxes_list[index]):
                     return index
-            case Data.Direction.SE:
+            case AbstractData.Direction.SE:
                 index = self.index(row + 1, column + 1)
-                if row < self.rows - 1 and column < self.columns - 1 and Data.check(self.boxes_list[index]):
+                if row < self.rows - 1 and column < self.columns - 1 and AbstractData.check(self.boxes_list[index]):
                     return index
-            case Data.Direction.SW:
+            case AbstractData.Direction.SW:
                 index = self.index(row + 1, column - 1)
-                if row < self.rows - 1 and column > 0 and Data.check(self.boxes_list[index]):
+                if row < self.rows - 1 and column > 0 and AbstractData.check(self.boxes_list[index]):
                     return index
 
     def __init_boxes(self):

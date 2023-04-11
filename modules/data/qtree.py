@@ -5,10 +5,10 @@ import numpy as np
 
 from config import Config
 from modules.box import Box
-from modules.data import Data
+from modules.data.abstract_data import AbstractData
 
 
-class QTree(Data):
+class QTree(AbstractData):
 
     class Child(IntEnum):
         NW = 0
@@ -18,10 +18,13 @@ class QTree(Data):
 
     def __init__(self, pixels: np.ndarray, x, y, w, h):
         super().__init__(pixels)
-        self.depth = 0
         self.box = Box(x, y, w, h)
+        self.depth = 0
         self.parent: QTree = None
         self.children: list[QTree] = []
+
+    def __repr__(self):
+        return f'QTree(box={self.box}, depth={self.depth})'
 
     def is_leaf(self):
         return not self.children
@@ -95,7 +98,7 @@ class QTree(Data):
         for child in self.children:
             child.divide()
 
-    def neighbour(self, node: 'QTree', direction: Data.Direction):
+    def neighbour(self, node: 'QTree', direction: AbstractData.Direction):
         if Config.Path.ALLOW_DIAGONAL and direction.is_diagonal():
             diagonal_neighbour = self.__diagonal_neighbour(node, direction)
             return [diagonal_neighbour] if diagonal_neighbour is not None else []
@@ -105,7 +108,7 @@ class QTree(Data):
     def neighbours(self, node: 'QTree'):
         neighbours = set()
 
-        for direction in Data.Direction:
+        for direction in AbstractData.Direction:
             direction_neighbours = self.neighbour(node, direction)
 
             for neighbour in direction_neighbours:
@@ -114,7 +117,7 @@ class QTree(Data):
         return neighbours
 
     def cost(self, start: 'QTree', end: 'QTree'):
-        return self.distance.get(start.box.center(), end.box.center())
+        return self.distance(start.box.center(), end.box.center())
 
     def heuristic(self, start: 'QTree', end: 'QTree'):
         return self.cost(start, end)
@@ -126,7 +129,7 @@ class QTree(Data):
         neighbours = []
 
         for candidate in candidates:
-            if Data.check(candidate.box):
+            if AbstractData.check(candidate.box):
                 neighbours.append(candidate)
 
         return neighbours
@@ -135,23 +138,23 @@ class QTree(Data):
         candidate = None
 
         match direction:
-            case Data.Direction.NW:
+            case AbstractData.Direction.NW:
                 candidate = self.get(node.box.x - 1, node.box.y - 1)
-            case Data.Direction.NE:
+            case AbstractData.Direction.NE:
                 candidate = self.get(node.box.x + node.box.w, node.box.y - 1)
-            case Data.Direction.SE:
+            case AbstractData.Direction.SE:
                 candidate = self.get(node.box.x + node.box.w, node.box.y + node.box.h)
-            case Data.Direction.SW:
+            case AbstractData.Direction.SW:
                 candidate = self.get(node.box.x - 1, node.box.y + node.box.h)
 
-        return candidate if candidate is not None and Data.check(candidate.box) else None
+        return candidate if candidate is not None and AbstractData.check(candidate.box) else None
 
-    def __get_equal_or_greater_neighbour(self, node: 'QTree', direction: Data.Direction):
+    def __get_equal_or_greater_neighbour(self, node: 'QTree', direction: AbstractData.Direction):
         if node.parent is None:
             return None
 
         match direction:
-            case Data.Direction.N:
+            case AbstractData.Direction.N:
                 if node == node.parent.children[node.Child.SW]:
                     return node.parent.children[node.Child.NW]
                 elif node == node.parent.children[node.Child.SE]:
@@ -167,7 +170,7 @@ class QTree(Data):
 
                 return next_node.children[node.Child.SE]
 
-            case Data.Direction.E:
+            case AbstractData.Direction.E:
                 if node == node.parent.children[node.Child.NW]:
                     return node.parent.children[node.Child.NE]
                 elif node == node.parent.children[node.Child.SW]:
@@ -183,7 +186,7 @@ class QTree(Data):
 
                 return next_node.children[node.Child.SW]
 
-            case Data.Direction.S:
+            case AbstractData.Direction.S:
                 if node == node.parent.children[node.Child.NW]:
                     return node.parent.children[node.Child.SW]
                 elif node == node.parent.children[node.Child.NE]:
@@ -199,7 +202,7 @@ class QTree(Data):
 
                 return next_node.children[node.Child.NE]
 
-            case Data.Direction.W:
+            case AbstractData.Direction.W:
                 if node == node.parent.children[node.Child.NE]:
                     return node.parent.children[node.Child.NW]
                 elif node == node.parent.children[node.Child.SE]:
@@ -215,7 +218,7 @@ class QTree(Data):
 
                 return next_node.children[node.Child.SE]
 
-    def __get_smaller_neighbours(self, node: 'QTree', direction: Data.Direction):
+    def __get_smaller_neighbours(self, node: 'QTree', direction: AbstractData.Direction):
         neighbours = []
         candidates = deque()
 
@@ -230,16 +233,16 @@ class QTree(Data):
                 continue
 
             match direction:
-                case Data.Direction.N:
+                case AbstractData.Direction.N:
                     candidates.append(candidate.children[QTree.Child.SW])
                     candidates.append(candidate.children[QTree.Child.SE])
-                case Data.Direction.E:
+                case AbstractData.Direction.E:
                     candidates.append(candidate.children[QTree.Child.NW])
                     candidates.append(candidate.children[QTree.Child.SW])
-                case Data.Direction.S:
+                case AbstractData.Direction.S:
                     candidates.append(candidate.children[QTree.Child.NW])
                     candidates.append(candidate.children[QTree.Child.NE])
-                case Data.Direction.W:
+                case AbstractData.Direction.W:
                     candidates.append(candidate.children[QTree.Child.NE])
                     candidates.append(candidate.children[QTree.Child.SE])
 

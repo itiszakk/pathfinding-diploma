@@ -1,6 +1,6 @@
 class Config:
     class Path:
-        ALLOW_DIAGONAL = True
+        ALLOW_DIAGONAL = False
 
     class QTree:
         MIN_SIZE = 100

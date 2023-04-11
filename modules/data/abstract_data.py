@@ -1,11 +1,11 @@
+import math
 import numpy as np
 from modules.box import Box
-from modules.distance import Distance
 from enum import IntEnum
 from abc import ABC, abstractmethod
 
 
-class Data(ABC):
+class AbstractData(ABC):
 
     class Direction(IntEnum):
         N = 0
@@ -18,18 +18,32 @@ class Data(ABC):
         SW = 7
 
         def is_diagonal(self):
-            return (self == Data.Direction.NW or
-                    self == Data.Direction.NE or
-                    self == Data.Direction.SE or
-                    self == Data.Direction.SW)
+            return (self == AbstractData.Direction.NW or
+                    self == AbstractData.Direction.NE or
+                    self == AbstractData.Direction.SE or
+                    self == AbstractData.Direction.SW)
+
+    class DistanceAlgorithm(IntEnum):
+        EUCLIDIAN = 0
+        MANHATTAN = 1
 
     def __init__(self, pixels: np.ndarray):
         self.pixels = pixels
-        self.distance = Distance()
+        self.distance_algorithm = AbstractData.DistanceAlgorithm.EUCLIDIAN
 
     @staticmethod
     def check(box: Box):
         return box.state == Box.State.SAFE
+
+    def distance(self, start, end):
+        x = start[0] - end[0]
+        y = start[1] - end[1]
+
+        match self.distance_algorithm:
+            case AbstractData.DistanceAlgorithm.EUCLIDIAN:
+                return math.sqrt(x ** 2 + y ** 2)
+            case AbstractData.DistanceAlgorithm.MANHATTAN:
+                return abs(x) + abs(y)
 
     @classmethod
     @abstractmethod
