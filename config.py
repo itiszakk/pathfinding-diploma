@@ -1,4 +1,7 @@
 class Config:
+    class Path:
+        ALLOW_DIAGONAL = True
+
     class QTree:
         MIN_SIZE = 100
 

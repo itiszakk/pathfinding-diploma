@@ -38,39 +38,10 @@ class Grid(Data):
         row = index // self.columns
         column = index - row * self.columns
 
-        match direction:
-            case Data.Direction.N:
-                index = self.index(row - 1, column)
-                if row > 0 and Data.check(self.boxes_list[index]):
-                    return index
-            case Data.Direction.E:
-                index = self.index(row, column + 1)
-                if column < self.columns - 1 and Data.check(self.boxes_list[index]):
-                    return index
-            case Data.Direction.S:
-                index = self.index(row + 1, column)
-                if row < self.rows - 1 and Data.check(self.boxes_list[index]):
-                    return index
-            case Data.Direction.W:
-                index = self.index(row, column - 1)
-                if column > 0 and Data.check(self.boxes_list[index]):
-                    return index
-            case Data.Direction.NW:
-                index = self.index(row - 1, column - 1)
-                if row > 0 and column > 0 and Data.check(self.boxes_list[index]):
-                    return index
-            case Data.Direction.NE:
-                index = self.index(row - 1, column + 1)
-                if row > 0 and column < self.columns - 1 and Data.check(self.boxes_list[index]):
-                    return index
-            case Data.Direction.SE:
-                index = self.index(row + 1, column + 1)
-                if row < self.rows - 1 and column < self.columns - 1 and Data.check(self.boxes_list[index]):
-                    return index
-            case Data.Direction.SW:
-                index = self.index(row + 1, column - 1)
-                if row < self.rows - 1 and column > 0 and Data.check(self.boxes_list[index]):
-                    return index
+        if Config.Path.ALLOW_DIAGONAL and direction.is_diagonal():
+            return self.__diagonal_neighbour(row, column, direction)
+
+        return self.__cardinal_neighbour(row, column, direction)
 
     def neighbours(self, index):
         neighbours = []
@@ -88,6 +59,44 @@ class Grid(Data):
 
     def heuristic(self, start: int, end: int):
         return self.cost(start, end)
+
+    def __cardinal_neighbour(self, row, column, direction: Data.Direction):
+        match direction:
+            case Data.Direction.N:
+                index = self.index(row - 1, column)
+                if row > 0 and Data.check(self.boxes_list[index]):
+                    return index
+            case Data.Direction.E:
+                index = self.index(row, column + 1)
+                if column < self.columns - 1 and Data.check(self.boxes_list[index]):
+                    return index
+            case Data.Direction.S:
+                index = self.index(row + 1, column)
+                if row < self.rows - 1 and Data.check(self.boxes_list[index]):
+                    return index
+            case Data.Direction.W:
+                index = self.index(row, column - 1)
+                if column > 0 and Data.check(self.boxes_list[index]):
+                    return index
+
+    def __diagonal_neighbour(self, row, column, direction: Data.Direction):
+        match direction:
+            case Data.Direction.NW:
+                index = self.index(row - 1, column - 1)
+                if row > 0 and column > 0 and Data.check(self.boxes_list[index]):
+                    return index
+            case Data.Direction.NE:
+                index = self.index(row - 1, column + 1)
+                if row > 0 and column < self.columns - 1 and Data.check(self.boxes_list[index]):
+                    return index
+            case Data.Direction.SE:
+                index = self.index(row + 1, column + 1)
+                if row < self.rows - 1 and column < self.columns - 1 and Data.check(self.boxes_list[index]):
+                    return index
+            case Data.Direction.SW:
+                index = self.index(row + 1, column - 1)
+                if row < self.rows - 1 and column > 0 and Data.check(self.boxes_list[index]):
+                    return index
 
     def __init_boxes(self):
         size = Config.Grid.MIN_SIZE

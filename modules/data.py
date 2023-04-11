@@ -17,6 +17,12 @@ class Data(ABC):
         SE = 6
         SW = 7
 
+        def is_diagonal(self):
+            return (self == Data.Direction.NW or
+                    self == Data.Direction.NE or
+                    self == Data.Direction.SE or
+                    self == Data.Direction.SW)
+
     def __init__(self, pixels: np.ndarray):
         self.pixels = pixels
         self.distance = Distance()
@@ -42,7 +48,7 @@ class Data(ABC):
 
     @classmethod
     @abstractmethod
-    def neighbour(cls, *args, **kwargs):
+    def neighbour(cls, element, direction: Direction):
         ...
 
     @classmethod

@@ -6,8 +6,6 @@ from modules.grid import Grid
 from modules.qtree import QTree
 
 
-# TODO Neighbours by expanded box intersection
-
 # TODO Neighbours only by directions, not all around
 # TODO Jump Point Search
 
