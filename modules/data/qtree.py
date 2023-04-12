@@ -42,13 +42,27 @@ class QTree(AbstractData):
             if node.box.contains(x, y):
                 return node.get(x, y)
 
-    def elements(self):
+    def elements(self, states=None):
+        candidates = self.__search_children()
+
+        if states is None:
+            return candidates
+
+        elements = []
+
+        for node in candidates:
+            if node.box.state in states:
+                elements.append(node)
+
+        return elements
+
+    def __search_children(self):
         if self.is_leaf():
             return [self]
 
         children = []
         for node in self.children:
-            children.extend(node.elements())
+            children.extend(node.__search_children())
 
         return children
 

@@ -1,8 +1,10 @@
 import math
-import numpy as np
-from modules.box import Box
-from enum import IntEnum
 from abc import ABC, abstractmethod
+from enum import IntEnum
+
+import numpy as np
+
+from modules.box import Box
 
 
 class AbstractData(ABC):
@@ -23,27 +25,27 @@ class AbstractData(ABC):
                     self == AbstractData.Direction.SE or
                     self == AbstractData.Direction.SW)
 
-    class DistanceAlgorithm(IntEnum):
+    class DistanceMethod(IntEnum):
         EUCLIDIAN = 0
         MANHATTAN = 1
 
     def __init__(self, pixels: np.ndarray):
         self.pixels = pixels
-        self.distance_algorithm = AbstractData.DistanceAlgorithm.EUCLIDIAN
-
-    @staticmethod
-    def check(box: Box):
-        return box.state == Box.State.SAFE
+        self.distance_method = AbstractData.DistanceMethod.EUCLIDIAN
 
     def distance(self, start, end):
         x = start[0] - end[0]
         y = start[1] - end[1]
 
-        match self.distance_algorithm:
-            case AbstractData.DistanceAlgorithm.EUCLIDIAN:
+        match self.distance_method:
+            case AbstractData.DistanceMethod.EUCLIDIAN:
                 return math.sqrt(x ** 2 + y ** 2)
-            case AbstractData.DistanceAlgorithm.MANHATTAN:
+            case AbstractData.DistanceMethod.MANHATTAN:
                 return abs(x) + abs(y)
+
+    @staticmethod
+    def check(box: Box):
+        return box.state == Box.State.SAFE
 
     @classmethod
     @abstractmethod
@@ -52,7 +54,7 @@ class AbstractData(ABC):
 
     @classmethod
     @abstractmethod
-    def elements(cls, *args, **kwargs):
+    def elements(cls, states: list[Box.State] | None = None):
         ...
 
     @classmethod

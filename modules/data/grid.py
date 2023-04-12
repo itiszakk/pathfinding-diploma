@@ -1,4 +1,5 @@
 import numpy as np
+
 from config import Config
 from modules.box import Box
 from modules.data.abstract_data import AbstractData
@@ -20,8 +21,17 @@ class Grid(AbstractData):
     def index(self, row, column):
         return row * self.columns + column
 
-    def elements(self):
-        return self.boxes_list
+    def elements(self, states=None):
+        if states is None:
+            return self.boxes_list
+
+        elements = []
+
+        for box in self.boxes_list:
+            if box.state in states:
+                elements.append(box)
+
+        return elements
 
     def boxes(self, target_list=None):
         if target_list is None:
