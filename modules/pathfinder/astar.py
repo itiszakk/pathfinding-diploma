@@ -14,7 +14,7 @@ class AStar(AbstractPathfinder):
         visited = {self.start: None}
 
         while priority_queue:
-            current, _ = priority_queue.popitem()
+            current = priority_queue.popitem()[0]
 
             if current == self.end:
                 break

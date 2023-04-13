@@ -44,20 +44,23 @@ class Grid(AbstractData):
 
         return boxes
 
-    def neighbour(self, index, direction: AbstractData.Direction):
-        row = index // self.columns
-        column = index - row * self.columns
+    def direction(self, start: int, end: int):
+        return self.Direction.direction(self.boxes_list[start], self.boxes_list[end])
+
+    def neighbour(self, element: int, direction: AbstractData.Direction):
+        row = element // self.columns
+        column = element - row * self.columns
 
         if Config.Path.ALLOW_DIAGONAL and direction.is_diagonal():
             return self.__diagonal_neighbour(row, column, direction)
 
         return self.__cardinal_neighbour(row, column, direction)
 
-    def neighbours(self, index):
+    def neighbours(self, element: int):
         neighbours = []
 
         for direction in AbstractData.Direction:
-            neighbour = self.neighbour(index, direction)
+            neighbour = self.neighbour(element, direction)
 
             if neighbour is not None:
                 neighbours.append(neighbour)

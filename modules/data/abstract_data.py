@@ -20,10 +20,32 @@ class AbstractData(ABC):
         SW = 7
 
         def is_diagonal(self):
-            return (self == AbstractData.Direction.NW or
-                    self == AbstractData.Direction.NE or
-                    self == AbstractData.Direction.SE or
-                    self == AbstractData.Direction.SW)
+            return (self == self.NW or
+                    self == self.NE or
+                    self == self.SW or
+                    self == self.SE)
+
+        @staticmethod
+        def direction(start: Box, end: Box):
+            x0, y0 = start.center()
+            x1, y1 = end.center()
+
+            if x0 == x1 and y0 < y1:
+                return AbstractData.Direction.S
+            elif x0 == x1 and y0 > y1:
+                return AbstractData.Direction.N
+            elif x0 < x1 and y0 == y1:
+                return AbstractData.Direction.E
+            elif x0 < x1 and y0 < y1:
+                return AbstractData.Direction.SE
+            elif x0 < x1 and y0 > y1:
+                return AbstractData.Direction.NE
+            elif x0 > x1 and y0 == y1:
+                return AbstractData.Direction.W
+            elif x0 > x1 and y0 < y1:
+                return AbstractData.Direction.SW
+            elif x0 > x1 and y0 > y1:
+                return AbstractData.Direction.NW
 
     class DistanceMethod(IntEnum):
         EUCLIDIAN = 0
@@ -64,12 +86,17 @@ class AbstractData(ABC):
 
     @classmethod
     @abstractmethod
+    def direction(cls, start, end):
+        ...
+
+    @classmethod
+    @abstractmethod
     def neighbour(cls, element, direction: Direction):
         ...
 
     @classmethod
     @abstractmethod
-    def neighbours(cls, *args, **kwargs):
+    def neighbours(cls, element):
         ...
 
     @classmethod

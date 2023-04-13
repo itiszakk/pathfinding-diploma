@@ -56,20 +56,10 @@ class QTree(AbstractData):
 
         return elements
 
-    def __search_children(self):
-        if self.is_leaf():
-            return [self]
-
-        children = []
-        for node in self.children:
-            children.extend(node.__search_children())
-
-        return children
-
-    def boxes(self, target_list=None):
+    def boxes(self, targets=None):
         boxes = []
 
-        if target_list is None:
+        if targets is None:
             elements = self.elements()
 
             for element in elements:
@@ -77,7 +67,7 @@ class QTree(AbstractData):
 
             return boxes
 
-        for target in target_list:
+        for target in targets:
             boxes.append(target.box)
 
         return boxes
@@ -112,18 +102,21 @@ class QTree(AbstractData):
         for child in self.children:
             child.divide()
 
-    def neighbour(self, node: 'QTree', direction: AbstractData.Direction):
+    def direction(self, start: 'QTree', end: 'QTree'):
+        return self.Direction.direction(start.box, end.box)
+
+    def neighbour(self, element: 'QTree', direction: AbstractData.Direction):
         if Config.Path.ALLOW_DIAGONAL and direction.is_diagonal():
-            diagonal_neighbour = self.__diagonal_neighbour(node, direction)
+            diagonal_neighbour = self.__diagonal_neighbour(element, direction)
             return [diagonal_neighbour] if diagonal_neighbour is not None else []
 
-        return self.__cardinal_neighbours(node, direction)
+        return self.__cardinal_neighbours(element, direction)
 
-    def neighbours(self, node: 'QTree'):
+    def neighbours(self, element: 'QTree'):
         neighbours = set()
 
         for direction in AbstractData.Direction:
-            direction_neighbours = self.neighbour(node, direction)
+            direction_neighbours = self.neighbour(element, direction)
 
             for neighbour in direction_neighbours:
                 neighbours.add(neighbour)
@@ -136,8 +129,18 @@ class QTree(AbstractData):
     def heuristic(self, start: 'QTree', end: 'QTree'):
         return self.cost(start, end)
 
-    def __cardinal_neighbours(self, node: 'QTree', direction):
-        equal_or_greater = self.__get_equal_or_greater_neighbour(node, direction)
+    def __search_children(self):
+        if self.is_leaf():
+            return [self]
+
+        children = []
+        for node in self.children:
+            children.extend(node.__search_children())
+
+        return children
+
+    def __cardinal_neighbours(self, element: 'QTree', direction: AbstractData.Direction):
+        equal_or_greater = self.__get_equal_or_greater_neighbour(element, direction)
         candidates = self.__get_smaller_neighbours(equal_or_greater, direction)
 
         neighbours = []
@@ -148,96 +151,96 @@ class QTree(AbstractData):
 
         return neighbours
 
-    def __diagonal_neighbour(self, node: 'QTree', direction):
+    def __diagonal_neighbour(self, element: 'QTree', direction: AbstractData.Direction):
         candidate = None
 
         match direction:
             case AbstractData.Direction.NW:
-                candidate = self.get(node.box.x - 1, node.box.y - 1)
+                candidate = self.get(element.box.x - 1, element.box.y - 1)
             case AbstractData.Direction.NE:
-                candidate = self.get(node.box.x + node.box.w, node.box.y - 1)
+                candidate = self.get(element.box.x + element.box.w, element.box.y - 1)
             case AbstractData.Direction.SE:
-                candidate = self.get(node.box.x + node.box.w, node.box.y + node.box.h)
+                candidate = self.get(element.box.x + element.box.w, element.box.y + element.box.h)
             case AbstractData.Direction.SW:
-                candidate = self.get(node.box.x - 1, node.box.y + node.box.h)
+                candidate = self.get(element.box.x - 1, element.box.y + element.box.h)
 
         return candidate if candidate is not None and AbstractData.check(candidate.box) else None
 
-    def __get_equal_or_greater_neighbour(self, node: 'QTree', direction: AbstractData.Direction):
-        if node.parent is None:
+    def __get_equal_or_greater_neighbour(self, element: 'QTree', direction: AbstractData.Direction):
+        if element.parent is None:
             return None
 
         match direction:
             case AbstractData.Direction.N:
-                if node == node.parent.children[node.Child.SW]:
-                    return node.parent.children[node.Child.NW]
-                elif node == node.parent.children[node.Child.SE]:
-                    return node.parent.children[node.Child.NE]
+                if element == element.parent.children[element.Child.SW]:
+                    return element.parent.children[element.Child.NW]
+                elif element == element.parent.children[element.Child.SE]:
+                    return element.parent.children[element.Child.NE]
 
-                next_node = self.__get_equal_or_greater_neighbour(node.parent, direction)
+                next_element = self.__get_equal_or_greater_neighbour(element.parent, direction)
 
-                if next_node is None or next_node.is_leaf():
-                    return next_node
+                if next_element is None or next_element.is_leaf():
+                    return next_element
 
-                if node == node.parent.children[node.Child.NW]:
-                    return next_node.children[node.Child.SW]
+                if element == element.parent.children[element.Child.NW]:
+                    return next_element.children[element.Child.SW]
 
-                return next_node.children[node.Child.SE]
+                return next_element.children[element.Child.SE]
 
             case AbstractData.Direction.E:
-                if node == node.parent.children[node.Child.NW]:
-                    return node.parent.children[node.Child.NE]
-                elif node == node.parent.children[node.Child.SW]:
-                    return node.parent.children[node.Child.SE]
+                if element == element.parent.children[element.Child.NW]:
+                    return element.parent.children[element.Child.NE]
+                elif element == element.parent.children[element.Child.SW]:
+                    return element.parent.children[element.Child.SE]
 
-                next_node = self.__get_equal_or_greater_neighbour(node.parent, direction)
+                next_element = self.__get_equal_or_greater_neighbour(element.parent, direction)
 
-                if next_node is None or next_node.is_leaf():
-                    return next_node
+                if next_element is None or next_element.is_leaf():
+                    return next_element
 
-                if node == node.parent.children[node.Child.NE]:
-                    return next_node.children[node.Child.NW]
+                if element == element.parent.children[element.Child.NE]:
+                    return next_element.children[element.Child.NW]
 
-                return next_node.children[node.Child.SW]
+                return next_element.children[element.Child.SW]
 
             case AbstractData.Direction.S:
-                if node == node.parent.children[node.Child.NW]:
-                    return node.parent.children[node.Child.SW]
-                elif node == node.parent.children[node.Child.NE]:
-                    return node.parent.children[node.Child.SE]
+                if element == element.parent.children[element.Child.NW]:
+                    return element.parent.children[element.Child.SW]
+                elif element == element.parent.children[element.Child.NE]:
+                    return element.parent.children[element.Child.SE]
 
-                next_node = self.__get_equal_or_greater_neighbour(node.parent, direction)
+                next_element = self.__get_equal_or_greater_neighbour(element.parent, direction)
 
-                if next_node is None or next_node.is_leaf():
-                    return next_node
+                if next_element is None or next_element.is_leaf():
+                    return next_element
 
-                if node == node.parent.children[node.Child.SW]:
-                    return next_node.children[node.Child.NW]
+                if element == element.parent.children[element.Child.SW]:
+                    return next_element.children[element.Child.NW]
 
-                return next_node.children[node.Child.NE]
+                return next_element.children[element.Child.NE]
 
             case AbstractData.Direction.W:
-                if node == node.parent.children[node.Child.NE]:
-                    return node.parent.children[node.Child.NW]
-                elif node == node.parent.children[node.Child.SE]:
-                    return node.parent.children[node.Child.SW]
+                if element == element.parent.children[element.Child.NE]:
+                    return element.parent.children[element.Child.NW]
+                elif element == element.parent.children[element.Child.SE]:
+                    return element.parent.children[element.Child.SW]
 
-                next_node = self.__get_equal_or_greater_neighbour(node.parent, direction)
+                next_element = self.__get_equal_or_greater_neighbour(element.parent, direction)
 
-                if next_node is None or next_node.is_leaf():
-                    return next_node
+                if next_element is None or next_element.is_leaf():
+                    return next_element
 
-                if node == node.parent.children[node.Child.NW]:
-                    return next_node.children[node.Child.NE]
+                if element == element.parent.children[element.Child.NW]:
+                    return next_element.children[element.Child.NE]
 
-                return next_node.children[node.Child.SE]
+                return next_element.children[element.Child.SE]
 
-    def __get_smaller_neighbours(self, node: 'QTree', direction: AbstractData.Direction):
+    def __get_smaller_neighbours(self, element: 'QTree', direction: AbstractData.Direction):
         neighbours = []
         candidates = deque()
 
-        if node is not None:
-            candidates.append(node)
+        if element is not None:
+            candidates.append(element)
 
         while candidates:
             candidate = candidates.popleft()
