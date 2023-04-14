@@ -5,8 +5,8 @@ from PIL import Image as im
 from PIL import ImageDraw as imdraw
 
 from config import Config
-from modules.data.abstract_data import AbstractData
-from modules.pathfinder.pathfinder_info import PathfinderInfo
+from modules.data import AbstractData
+from modules.pathfinder import PathfinderInfo
 
 
 class Image:
