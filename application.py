@@ -6,42 +6,45 @@ from modules.data.grid import Grid
 from modules.data.qtree import QTree
 from modules.image import Image
 from modules.pathfinder.abstract_pathfinder import AbstractPathfinder
+from modules.pathfinder.pathfinder_info import PathfinderInfo
 from modules.pathfinder.astar import AStar
 
 
-# TODO Draw waypoints
 # TODO Trajectory smoothing
 # TODO Jump Point Search (with grid?)
 # TODO Risk maps by different criteria
 # TODO Path to special format
 
-def print_pathfinding_info(pathfinder: AbstractPathfinder,
+def print_pathfinding_info(data: AbstractData,
+                           info: PathfinderInfo,
                            distance_method: AbstractData.DistanceMethod,
-                           path, visited, time):
+                           time):
 
-    safe_elements = pathfinder.data.elements([Box.State.SAFE])
-    path_length = len(path) if path is not None else None
+    safe_elements_length = len(data.elements([Box.State.SAFE]))
+    path_length = info.path_length()
+    visited_length = info.visited_length()
+    visited_percent = visited_length / safe_elements_length * 100
 
     print(f'\n'
-          f'Pathfinder: {type(pathfinder).__name__}\n'
-          f'Data: {type(pathfinder.data).__name__}\n'
+          f'Pathfinder: {info.pathfinder_name}\n'
+          f'Data: {type(data).__name__}\n'
           f'Distance: {distance_method.name}\n'
           f'Allow diagonal: {Config.Path.ALLOW_DIAGONAL}\n'
           f'Path length: {path_length}\n'
-          f'Visited: {len(visited)} ({(len(visited) / len(safe_elements) * 100):.3f}% of safe elements)\n'
+          f'Trajectory length: {info.trajectory_length():.3f}\n'
+          f'Visited: {visited_length} ({visited_percent:.3f}% of safe elements)\n'
           f'Time: {time} ms')
 
 
-def pathfinding(image: Image, pathfinder: AbstractPathfinder, start, end,
-                distance_method: AbstractData.DistanceMethod, save_path: str):
+def pathfinding(image: Image, pathfinder: AbstractPathfinder, distance_method: AbstractData.DistanceMethod, save_path):
     pathfinder.data.distance_method = distance_method
 
     start_time = timer.now()
-    path, visited = pathfinder.search()
+    pathfinder_info: PathfinderInfo = pathfinder.search()
     end_time = timer.now() - start_time
 
-    print_pathfinding_info(pathfinder, distance_method, path, visited, end_time)
-    image.save(pathfinder.data, save_path, start, end, path, visited)
+    print_pathfinding_info(pathfinder.data, pathfinder_info, distance_method, end_time)
+    image.save(pathfinder.data, save_path, pathfinder_info)
 
 
 def create_grid(image):
@@ -68,7 +71,7 @@ def create_qtree(image):
 
 
 def main():
-    image = Image('images/test.png')
+    image = Image('images/big_map.png')
 
     grid = create_grid(image)
     qtree = create_qtree(image)
@@ -78,54 +81,13 @@ def main():
 
     pathfinding(image=image,
                 pathfinder=AStar(grid, start, end),
-                start=start,
-                end=end,
                 distance_method=AbstractData.DistanceMethod.EUCLIDIAN,
-                save_path='images/grid/test.png')
+                save_path='images/grid/grid_astar_euclidian_diagonal.png')
 
     pathfinding(image=image,
                 pathfinder=AStar(qtree, start, end),
-                start=start,
-                end=end,
                 distance_method=AbstractData.DistanceMethod.EUCLIDIAN,
-                save_path='images/qtree/test.png')
-
-
-    # Config.Path.ALLOW_DIAGONAL = True
-    # pathfinding(image=image,
-    #             pathfinder=AStar(grid, start, end),
-    #             distance_method=AbstractData.DistanceMethod.EUCLIDIAN,
-    #             save_path='images/grid/grid_astar_euclidian_diagonal.png')
-    # pathfinding(image=image,
-    #             pathfinder=AStar(grid, start, end),
-    #             distance_method=AbstractData.DistanceMethod.MANHATTAN,
-    #             save_path='images/grid/grid_astar_manhattan_diagonal.png')
-    # pathfinding(image=image,
-    #             pathfinder=AStar(qtree, start, end),
-    #             distance_method=AbstractData.DistanceMethod.EUCLIDIAN,
-    #             save_path='images/qtree/qtree_astar_euclidian_diagonal.png')
-    # pathfinding(image=image,
-    #             pathfinder=AStar(qtree, start, end),
-    #             distance_method=AbstractData.DistanceMethod.MANHATTAN,
-    #             save_path='images/qtree/qtree_astar_manhattan_diagonal.png')
-    #
-    # Config.Path.ALLOW_DIAGONAL = False
-    # pathfinding(image=image,
-    #             pathfinder=AStar(grid, start, end),
-    #             distance_method=AbstractData.DistanceMethod.EUCLIDIAN,
-    #             save_path='images/grid/grid_astar_euclidian_cardinal.png')
-    # pathfinding(image=image,
-    #             pathfinder=AStar(grid, start, end),
-    #             distance_method=AbstractData.DistanceMethod.MANHATTAN,
-    #             save_path='images/grid/grid_astar_manhattan_cardinal.png')
-    # pathfinding(image=image,
-    #             pathfinder=AStar(qtree, start, end),
-    #             distance_method=AbstractData.DistanceMethod.EUCLIDIAN,
-    #             save_path='images/qtree/qtree_astar_euclidian_cardinal.png')
-    # pathfinding(image=image,
-    #             pathfinder=AStar(qtree, start, end),
-    #             distance_method=AbstractData.DistanceMethod.MANHATTAN,
-    #             save_path='images/qtree/qtree_astar_manhattan_cardinal.png')
+                save_path='images/qtree/qtree_astar_euclidian_diagonal.png')
 
 
 if __name__ == '__main__':

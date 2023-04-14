@@ -1,6 +1,6 @@
-import math
 from abc import ABC, abstractmethod
 from enum import IntEnum
+from modules.distance import Distance
 
 import numpy as np
 
@@ -55,15 +55,12 @@ class AbstractData(ABC):
         self.pixels = pixels
         self.distance_method = AbstractData.DistanceMethod.EUCLIDIAN
 
-    def distance(self, start, end):
-        x = start[0] - end[0]
-        y = start[1] - end[1]
-
+    def distance(self, p0, p1):
         match self.distance_method:
             case AbstractData.DistanceMethod.EUCLIDIAN:
-                return math.sqrt(x ** 2 + y ** 2)
+                return Distance.euclidian(p0, p1)
             case AbstractData.DistanceMethod.MANHATTAN:
-                return abs(x) + abs(y)
+                return Distance.manhattan(p0, p1)
 
     @staticmethod
     def check(box: Box):

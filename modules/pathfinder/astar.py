@@ -6,7 +6,7 @@ from modules.pathfinder.abstract_pathfinder import AbstractPathfinder
 
 class AStar(AbstractPathfinder):
     def __init__(self, data: AbstractData, start, end):
-        super().__init__(data, start, end)
+        super().__init__(type(self).__name__, data, start, end)
 
     def search(self):
         priority_queue = pqdict({self.start: 0})
@@ -29,4 +29,4 @@ class AStar(AbstractPathfinder):
                     cost_so_far[neighbour] = cost
                     visited[neighbour] = current
 
-        return self.build_path(visited)
+        return self.build_info(visited)
