@@ -1,8 +1,8 @@
 import itertools
-import math
 from abc import ABC, abstractmethod
 
 from pqdict import pqdict
+from shapely.geometry import LineString
 
 from config import Config
 from modules.data import AbstractData, Grid
@@ -70,79 +70,36 @@ class PathfinderInfo:
     def __smooth_trajectory(self):
         smooth_trajectory = [self.end]
 
-        for index, pair in enumerate(itertools.pairwise(self.points)):
+        for index, trajectory in enumerate(itertools.pairwise(self.points)):
             box = self.path_boxes[index]
-            trajectory_line = pair[0][0], pair[0][1], pair[1][0], pair[1][1]
 
-            n_line = box.x, box.y, box.x + box.w - 1, box.y
-            n_intersection = self.__segments_intersection(trajectory_line, n_line)
+            n_line = (box.x, box.y), (box.x + box.w - 1, box.y)
+            e_line = (box.x + box.w - 1, box.y), (box.x + box.w - 1, box.y + box.h - 1)
+            s_line = (box.x, box.y + box.h - 1), (box.x + box.w - 1, box.y + box.h - 1)
+            w_line = (box.x, box.y), (box.x, box.y + box.h - 1)
 
-            if self.__is_point_in_segment(n_intersection, trajectory_line):
-                smooth_trajectory.append(n_intersection)
-                continue
+            box_segments = [n_line, e_line, s_line, w_line]
 
-            e_line = box.x + box.w - 1, box.y, box.x + box.w - 1, box.y + box.h - 1
-            e_intersection = self.__segments_intersection(trajectory_line, e_line)
+            for box_segment in box_segments:
+                intersection = self.__line_intersection(trajectory, box_segment)
 
-            if self.__is_point_in_segment(e_intersection, trajectory_line):
-                smooth_trajectory.append(e_intersection)
-                continue
-
-            s_line = box.x, box.y + box.h - 1, box.x + box.w - 1, box.y + box.h - 1
-            s_intersection = self.__segments_intersection(trajectory_line, s_line)
-
-            if self.__is_point_in_segment(s_intersection, trajectory_line):
-                smooth_trajectory.append(s_intersection)
-                continue
-
-            w_line = box.x, box.y, box.x, box.y + box.h - 1
-            w_intersection = self.__segments_intersection(trajectory_line, w_line)
-
-            if self.__is_point_in_segment(w_intersection, trajectory_line):
-                smooth_trajectory.append(w_intersection)
-                continue
-
-            smooth_trajectory.append(pair[1])
+                if intersection is not None:
+                    smooth_trajectory.append(intersection)
+                    break
 
         smooth_trajectory.append(self.start)
         self.points = smooth_trajectory
 
-    def __segments_intersection(self, s0, s1):
-        x0, y0, x1, y1 = s0
-        x2, y2, x3, y3 = s1
+    def __line_intersection(self, l0, l1):
+        l0 = LineString(l0)
+        l1 = LineString(l1)
 
-        denominator = (x0 - x1) * (y2 - y3) - (y0 - y1) * (x2 - x3)
-
-        # Lines are parallel or coincident
-        if denominator == 0:
+        if not l0.intersects(l1):
             return None
 
-        x_numerator = (x0 * y1 - y0 * x1) * (x2 - x3) - (x0 - x1) * (x2 * y3 - y2 * x3)
-        y_numerator = (x0 * y1 - y0 * x1) * (y2 - y3) - (y0 - y1) * (x2 * y3 - y2 * x3)
+        intersection = l0.intersection(l1)
 
-        x = x_numerator // denominator
-        y = y_numerator // denominator
-
-        return x, y
-
-    def __is_point_in_segment(self, p, s):
-        if p is None:
-            return False
-
-        x, y = p
-        x0, y0, x1, y1 = s
-
-        if x == x0 and y == y0 or x == x1 and y == y1:
-            return False
-
-        ap = Distance.euclidian((x, y), (x0, y0))
-        bp = Distance.euclidian((x, y), (x1, y1))
-        ab = Distance.euclidian((x0, y0), (x1, y1))
-
-        if math.isclose(ap + bp, ab, rel_tol=1e-02):
-            return True
-
-        return False
+        return round(intersection.x), round(intersection.y)
 
 
 class AbstractPathfinder(ABC):

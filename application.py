@@ -1,5 +1,3 @@
-import itertools
-
 from config import Config
 from modules import timer
 from modules.data import Box, AbstractData, Grid, QTree
@@ -7,7 +5,6 @@ from modules.image import Image
 from modules.pathfinder import PathfinderInfo, AbstractPathfinder, AStar
 
 
-# FIXME Trajectory smoothing (existing point intersect with box line)
 # TODO Create static graph
 # TODO Jump Point Search (with grid)
 # TODO Risk maps by different criteria
