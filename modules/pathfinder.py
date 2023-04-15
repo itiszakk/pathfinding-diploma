@@ -1,9 +1,12 @@
 import itertools
-from pqdict import pqdict
+import math
 from abc import ABC, abstractmethod
+
+from pqdict import pqdict
+
+from config import Config
 from modules.data import AbstractData, Grid
 from modules.distance import Distance
-from config import Config
 
 
 class PathfinderInfo:
@@ -43,7 +46,11 @@ class PathfinderInfo:
 
         self.path = path
         self.path_boxes = data.boxes(path)
-        self.__set_points()
+
+        self.__set_trajectory_points()
+
+        if Config.Path.ENABLE_SMOOTHING:
+            self.__smooth_trajectory()
 
     def set_visited(self, data, visited):
         if visited is None:
@@ -52,25 +59,90 @@ class PathfinderInfo:
         self.visited = visited
         self.visited_boxes = data.boxes(visited)
 
-    def get_box_color(self, box):
-        is_path_box = self.path_boxes is not None and box in self.path_boxes
-        is_visited_box = self.visited_boxes is not None and box in self.visited_boxes
-
-        if is_path_box:
-            return Config.Color.PATH
-
-        if is_visited_box:
-            return Config.Color.VISITED
-
-        return box.state.color
-
-    def __set_points(self):
+    def __set_trajectory_points(self):
         self.points = [self.end]
 
         for box in self.path_boxes[1:-1]:
             self.points.append(box.center())
 
         self.points.append(self.start)
+
+    def __smooth_trajectory(self):
+        smooth_trajectory = [self.end]
+
+        for index, pair in enumerate(itertools.pairwise(self.points)):
+            box = self.path_boxes[index]
+            trajectory_line = pair[0][0], pair[0][1], pair[1][0], pair[1][1]
+
+            n_line = box.x, box.y, box.x + box.w - 1, box.y
+            n_intersection = self.__segments_intersection(trajectory_line, n_line)
+
+            if self.__is_point_in_segment(n_intersection, trajectory_line):
+                smooth_trajectory.append(n_intersection)
+                continue
+
+            e_line = box.x + box.w - 1, box.y, box.x + box.w - 1, box.y + box.h - 1
+            e_intersection = self.__segments_intersection(trajectory_line, e_line)
+
+            if self.__is_point_in_segment(e_intersection, trajectory_line):
+                smooth_trajectory.append(e_intersection)
+                continue
+
+            s_line = box.x, box.y + box.h - 1, box.x + box.w - 1, box.y + box.h - 1
+            s_intersection = self.__segments_intersection(trajectory_line, s_line)
+
+            if self.__is_point_in_segment(s_intersection, trajectory_line):
+                smooth_trajectory.append(s_intersection)
+                continue
+
+            w_line = box.x, box.y, box.x, box.y + box.h - 1
+            w_intersection = self.__segments_intersection(trajectory_line, w_line)
+
+            if self.__is_point_in_segment(w_intersection, trajectory_line):
+                smooth_trajectory.append(w_intersection)
+                continue
+
+            smooth_trajectory.append(pair[1])
+
+        smooth_trajectory.append(self.start)
+        self.points = smooth_trajectory
+
+    def __segments_intersection(self, s0, s1):
+        x0, y0, x1, y1 = s0
+        x2, y2, x3, y3 = s1
+
+        denominator = (x0 - x1) * (y2 - y3) - (y0 - y1) * (x2 - x3)
+
+        # Lines are parallel or coincident
+        if denominator == 0:
+            return None
+
+        x_numerator = (x0 * y1 - y0 * x1) * (x2 - x3) - (x0 - x1) * (x2 * y3 - y2 * x3)
+        y_numerator = (x0 * y1 - y0 * x1) * (y2 - y3) - (y0 - y1) * (x2 * y3 - y2 * x3)
+
+        x = x_numerator // denominator
+        y = y_numerator // denominator
+
+        return x, y
+
+    def __is_point_in_segment(self, p, s):
+        if p is None:
+            return False
+
+        x, y = p
+        x0, y0, x1, y1 = s
+
+        if x == x0 and y == y0 or x == x1 and y == y1:
+            return False
+
+        ap = Distance.euclidian((x, y), (x0, y0))
+        bp = Distance.euclidian((x, y), (x1, y1))
+        ab = Distance.euclidian((x0, y0), (x1, y1))
+
+        if math.isclose(ap + bp, ab, rel_tol=1e-02):
+            return True
+
+        return False
 
 
 class AbstractPathfinder(ABC):

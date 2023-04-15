@@ -1,3 +1,5 @@
+import itertools
+
 from config import Config
 from modules import timer
 from modules.data import Box, AbstractData, Grid, QTree
@@ -5,7 +7,7 @@ from modules.image import Image
 from modules.pathfinder import PathfinderInfo, AbstractPathfinder, AStar
 
 
-# TODO Trajectory smoothing
+# FIXME Trajectory smoothing (existing point intersect with box line)
 # TODO Create static graph
 # TODO Jump Point Search (with grid)
 # TODO Risk maps by different criteria
@@ -75,12 +77,12 @@ def main():
     pathfinding(image=image,
                 pathfinder=AStar(grid, start, end),
                 distance=AbstractData.DistanceMethod.EUCLIDIAN,
-                save_path='images/grid/grid_astar_euclidian_diagonal.png')
+                save_path='images/grid/grid_astar_euclidian_diagonal_smooth.png')
 
     pathfinding(image=image,
                 pathfinder=AStar(qtree, start, end),
                 distance=AbstractData.DistanceMethod.EUCLIDIAN,
-                save_path='images/qtree/qtree_astar_euclidian_diagonal.png')
+                save_path='images/qtree/qtree_astar_euclidian_diagonal_smooth.png')
 
 
 if __name__ == '__main__':

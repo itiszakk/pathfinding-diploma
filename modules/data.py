@@ -66,28 +66,6 @@ class AbstractData(ABC):
                     self == self.SW or
                     self == self.SE)
 
-        @staticmethod
-        def direction(start: Box, end: Box):
-            x0, y0 = start.center()
-            x1, y1 = end.center()
-
-            if x0 == x1 and y0 < y1:
-                return AbstractData.Direction.S
-            elif x0 == x1 and y0 > y1:
-                return AbstractData.Direction.N
-            elif x0 < x1 and y0 == y1:
-                return AbstractData.Direction.E
-            elif x0 < x1 and y0 < y1:
-                return AbstractData.Direction.SE
-            elif x0 < x1 and y0 > y1:
-                return AbstractData.Direction.NE
-            elif x0 > x1 and y0 == y1:
-                return AbstractData.Direction.W
-            elif x0 > x1 and y0 < y1:
-                return AbstractData.Direction.SW
-            elif x0 > x1 and y0 > y1:
-                return AbstractData.Direction.NW
-
     class DistanceMethod(IntEnum):
         EUCLIDIAN = 0
         MANHATTAN = 1
@@ -120,11 +98,6 @@ class AbstractData(ABC):
     @classmethod
     @abstractmethod
     def boxes(cls, targets=None):
-        ...
-
-    @classmethod
-    @abstractmethod
-    def direction(cls, start, end):
         ...
 
     @classmethod
@@ -188,7 +161,25 @@ class Grid(AbstractData):
         return boxes
 
     def direction(self, start: int, end: int):
-        return self.Direction.direction(self.boxes_list[start], self.boxes_list[end])
+        x0, y0 = self.boxes_list[start].center()
+        x1, y1 = self.boxes_list[end].center()
+
+        if x0 == x1 and y0 < y1:
+            return AbstractData.Direction.S
+        elif x0 == x1 and y0 > y1:
+            return AbstractData.Direction.N
+        elif x0 < x1 and y0 == y1:
+            return AbstractData.Direction.E
+        elif x0 < x1 and y0 < y1:
+            return AbstractData.Direction.SE
+        elif x0 < x1 and y0 > y1:
+            return AbstractData.Direction.NE
+        elif x0 > x1 and y0 == y1:
+            return AbstractData.Direction.W
+        elif x0 > x1 and y0 < y1:
+            return AbstractData.Direction.SW
+        elif x0 > x1 and y0 > y1:
+            return AbstractData.Direction.NW
 
     def neighbour(self, element: int, direction: AbstractData.Direction):
         row = element // self.columns
@@ -363,9 +354,6 @@ class QTree(AbstractData):
 
         for child in self.children:
             child.divide()
-
-    def direction(self, start: 'QTree', end: 'QTree'):
-        return self.Direction.direction(start.box, end.box)
 
     def neighbour(self, element: 'QTree', direction: AbstractData.Direction):
         if Config.Path.ALLOW_DIAGONAL and direction.is_diagonal():

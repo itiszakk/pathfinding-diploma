@@ -1,7 +1,7 @@
 class Config:
     class Path:
         ALLOW_DIAGONAL = True
-        ENABLE_SMOOTHING = False
+        ENABLE_SMOOTHING = True
 
     class QTree:
         MIN_SIZE = 100
@@ -17,7 +17,9 @@ class Config:
         PATH = (153, 255, 153)
         VISITED = (153, 204, 255)
         TRAJECTORY = (102, 0, 0)
+        POINT = (102, 0, 0)
 
     class Image:
         BORDER = 5
-        TRAJECTORY = 15
+        TRAJECTORY = 10
+        POINT = 15
